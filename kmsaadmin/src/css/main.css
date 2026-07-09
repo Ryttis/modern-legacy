@@ -1,0 +1,44 @@
+body {
+  font-family: "Montserrat", sans-serif;
+}
+
+.form-signin {
+  max-width: 550px;
+  padding: 1rem;
+}
+
+.form-signin .form-floating:focus-within {
+  z-index: 2;
+}
+
+.form-signin input[type=text] {
+  margin-bottom: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.form-signin input[type=password] {
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.custom-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  grid-gap: 1em;
+}
+
+@media only screen and (max-width: 992px) {
+  .custom-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+@media only screen and (max-width: 600px) {
+  .custom-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.btn.disabled, .btn:disabled, fieldset:disabled .btn {
+  pointer-events: inherit !important;
+}/*# sourceMappingURL=main.css.map */
