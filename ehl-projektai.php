@@ -46,7 +46,7 @@
     <div class="container">
         <div class="ehl-projects">
             <div class="content-text">
-                <h2>„Re:Union“: Liublinas ir Kauunas – du miestai, bendra Europos kultūros paveldo vizija</h2>
+                <h2>„Re:Union“: Liublinas ir Kaunas – du miestai, bendra Europos kultūros paveldo vizija</h2>
 
                 <span>Iš pirmo žvilgsnio Liublinas ir Kaunas gali atrodyti tolimi – jų skirtingos istorijos, architektūriniai stiliai, skirtingi laikmečiai. Tačiau abu miestus sieja tai, kas, galbūt, nematoma akimis, bet jaučiama širdimi – abiem jiems suteiktas garbingas Europos paveldo ženklo titulas, liudijantis jų išskirtinį indėlį į bendrą Europos kultūrinę ir istorinę tapatybę.</span>
 
