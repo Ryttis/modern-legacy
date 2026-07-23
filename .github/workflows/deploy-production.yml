@@ -1,0 +1,120 @@
+name: Deploy to production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  # Re-run CI's blocking checks against main before deploying. This does not
+  # replace PR-time CI (branch protection already required it to merge) — it
+  # is a last-line guard in case main was ever updated without going through
+  # a checked PR (e.g. an admin merge override).
+  verify:
+    name: Verify PHP syntax before deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: none
+
+      - name: Lint all PHP files
+        run: |
+          set -euo pipefail
+          status=0
+          while IFS= read -r -d '' file; do
+            if ! php -l "$file" > /tmp/lint-output 2>&1; then
+              echo "::error file=$file::PHP syntax error"
+              cat /tmp/lint-output
+              status=1
+            fi
+          done < <(find . -path ./.git -prune -o -type f -name '*.php' -print0)
+          exit $status
+
+      - name: Verify deployment exclusion file exists
+        run: |
+          set -euo pipefail
+          test -f deploy/exclude-from-deploy.txt
+
+  deploy:
+    name: Deploy main to production
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Print commit being deployed
+        run: |
+          echo "Deploying commit: $(git rev-parse HEAD)"
+          echo "Commit subject: $(git log -1 --pretty=%s)"
+
+      - name: Install SSH key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.PRODUCTION_SSH_KEY }}
+
+      - name: Add production host to known_hosts
+        env:
+          PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
+          PRODUCTION_PORT: ${{ secrets.PRODUCTION_PORT }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "${PRODUCTION_PORT:-22}" -H "$PRODUCTION_HOST" >> ~/.ssh/known_hosts
+
+      - name: Run pre-deploy command (optional)
+        if: ${{ secrets.PRODUCTION_BEFORE_DEPLOY_COMMAND != '' }}
+        env:
+          PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
+          PRODUCTION_USER: ${{ secrets.PRODUCTION_USER }}
+          PRODUCTION_PORT: ${{ secrets.PRODUCTION_PORT }}
+          COMMAND: ${{ secrets.PRODUCTION_BEFORE_DEPLOY_COMMAND }}
+        run: |
+          set -euo pipefail
+          ssh -p "${PRODUCTION_PORT:-22}" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "$COMMAND"
+
+      - name: Deploy via rsync
+        env:
+          PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
+          PRODUCTION_USER: ${{ secrets.PRODUCTION_USER }}
+          PRODUCTION_PORT: ${{ secrets.PRODUCTION_PORT }}
+          PRODUCTION_SSH_KEY: ${{ secrets.PRODUCTION_SSH_KEY }}
+          PRODUCTION_PATH: ${{ secrets.PRODUCTION_PATH }}
+        run: |
+          bash deploy/legacy-rsync-deploy.sh
+
+      - name: Run post-deploy command (optional)
+        if: ${{ secrets.PRODUCTION_AFTER_DEPLOY_COMMAND != '' }}
+        env:
+          PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
+          PRODUCTION_USER: ${{ secrets.PRODUCTION_USER }}
+          PRODUCTION_PORT: ${{ secrets.PRODUCTION_PORT }}
+          COMMAND: ${{ secrets.PRODUCTION_AFTER_DEPLOY_COMMAND }}
+        run: |
+          set -euo pipefail
+          ssh -p "${PRODUCTION_PORT:-22}" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "$COMMAND"
+
+      - name: Optional remote PHP syntax check
+        if: ${{ vars.PRODUCTION_REMOTE_PHP_LINT_COMMAND != '' }}
+        env:
+          PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
+          PRODUCTION_USER: ${{ secrets.PRODUCTION_USER }}
+          PRODUCTION_PORT: ${{ secrets.PRODUCTION_PORT }}
+          COMMAND: ${{ vars.PRODUCTION_REMOTE_PHP_LINT_COMMAND }}
+        run: |
+          set -euo pipefail
+          ssh -p "${PRODUCTION_PORT:-22}" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "$COMMAND"
+        # This step uses a repository/environment VARIABLE (not a secret),
+        # since it's a command string, not sensitive data. It is entirely
+        # optional; the deploy succeeds without it. Example value:
+        # "cd /var/www/modernist && php -l index.php"
+
+      - name: Deployment summary
+        run: |
+          echo "Deployed commit $(git rev-parse HEAD) to production." >> "$GITHUB_STEP_SUMMARY"

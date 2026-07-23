@@ -1,0 +1,54 @@
+# Deployment exclusion list for modern-legacy
+#
+# rsync --exclude-from file. Anything matched here is never copied to the
+# production server by deploy/legacy-rsync-deploy.sh or
+# .github/workflows/deploy-production.yml.
+#
+# This is the primary safety layer that keeps known-dangerous legacy files
+# (see docs/legacy-critical-audit/security-findings.md) out of the deployed
+# docroot. Do NOT remove entries from this file without updating the audit
+# docs and confirming the underlying risk has actually been fixed.
+#
+# Patterns are rsync filter patterns (relative to the repo root unless they
+# start with a leading path).
+
+# --- VCS / CI / editor / agent metadata: never deploy ---
+.git/
+.github/
+.agents/
+.codex/
+.idea/
+.gitignore
+
+# --- Documentation: not part of the served site ---
+docs/
+README.md
+LEGACY_NOTICE.md
+
+# --- Deployment tooling itself: not application code ---
+deploy/
+
+# --- Full duplicate stale copy of the site, sitting in the web root ---
+# See security-findings.md #5: doubles the attack surface, has its own
+# committed secrets, must never be deployed.
+MODERNIS_BACKUP/
+
+# --- Raw SQL dumps: expose schema/data if downloadable, must stay private ---
+*.sql
+kmsaadmin/*.sql
+
+# --- Destructive one-off import script: drops/reimports buildings_en on every request ---
+kmsaadmin/db.php
+
+# --- Debug / scratch scripts left in the docroot ---
+test.php
+en/test.php
+reverse.php
+en/reverse.php
+
+# --- Common backup/editor/temp file patterns, in case they appear later ---
+*.bak
+*.orig
+*.swp
+*~
+.DS_Store
