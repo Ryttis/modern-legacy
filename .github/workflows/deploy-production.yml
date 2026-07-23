@@ -1,5 +1,11 @@
 name: Deploy to production
 
+# Production has no SSH access, so deployment uses FTP (see
+# docs/deployment/github-secrets.md and docs/deployment/production-server.md
+# for background and limitations). deploy/legacy-rsync-deploy.sh is kept in
+# the repo only as future reference for if/when SSH access becomes
+# available — it is not used by this workflow.
+
 on:
   push:
     branches: [ main ]
@@ -40,7 +46,7 @@ jobs:
           test -f deploy/exclude-from-deploy.txt
 
   deploy:
-    name: Deploy main to production
+    name: Deploy main to production (FTP)
     needs: verify
     runs-on: ubuntu-latest
     environment: production
@@ -54,67 +60,81 @@ jobs:
           echo "Deploying commit: $(git rev-parse HEAD)"
           echo "Commit subject: $(git log -1 --pretty=%s)"
 
-      - name: Install SSH key
-        uses: webfactory/ssh-agent@v0.9.0
+      # SamKirkland/FTP-Deploy-Action mirrors local-dir to server-dir: it
+      # uploads new/changed files and, by default, DELETES server files that
+      # no longer exist locally. Two separate exclude groups below guard
+      # against that:
+      #
+      #  1. "Dangerous / non-production files" — duplicated from
+      #     deploy/exclude-from-deploy.txt. This action has no
+      #     --exclude-from equivalent (it only accepts an inline glob list
+      #     in the workflow), so the pattern list is hand-duplicated here.
+      #     IMPORTANT: if you edit deploy/exclude-from-deploy.txt, update
+      #     this list too — they must be kept in sync manually.
+      #
+      #  2. "Runtime upload directories" — ehl-pastatai/, ehl-upload/,
+      #     news-img/ hold images uploaded through the admin panel directly
+      #     on the server. They are NOT excluded because they're dangerous —
+      #     they're excluded so this mirroring deploy never uploads to or
+      #     deletes from them, which would otherwise wipe out any image
+      #     uploaded on the server since the last deploy but never committed
+      #     to Git. This satisfies "do not delete server uploads/images
+      #     unless explicitly approved." If these directories don't already
+      #     exist on the server (e.g. a brand-new server), they must be
+      #     populated there once, out of band, before relying on this
+      #     exclusion.
+      - name: Deploy via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          ssh-private-key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          server: ${{ secrets.FTP_HOST }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT }}
+          server-dir: ${{ secrets.FTP_REMOTE_PATH }}
+          protocol: ftps
+          log-level: standard
+          dangerous-clean-slate: false
+          exclude: |
+            # --- dangerous / non-production files (mirrors deploy/exclude-from-deploy.txt) ---
+            .git/**
+            .github/**
+            .agents/**
+            .codex/**
+            .idea/**
+            .gitignore
+            docs/**
+            README.md
+            LEGACY_NOTICE.md
+            deploy/**
+            MODERNIS_BACKUP/**
+            **/*.sql
+            kmsaadmin/db.php
+            test.php
+            en/test.php
+            reverse.php
+            en/reverse.php
+            **/*.bak
+            **/*.orig
+            **/*.swp
+            **/*~
+            **/.DS_Store
+            # --- runtime upload directories: never uploaded to or deleted from by this job ---
+            ehl-pastatai/**
+            ehl-upload/**
+            news-img/**
 
-      - name: Add production host to known_hosts
+      - name: Verify PRODUCTION_URL responds (optional)
+        if: ${{ secrets.PRODUCTION_URL != '' }}
         env:
-          PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
-          PRODUCTION_PORT: ${{ secrets.PRODUCTION_PORT }}
+          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
         run: |
           set -euo pipefail
-          mkdir -p ~/.ssh
-          ssh-keyscan -p "${PRODUCTION_PORT:-22}" -H "$PRODUCTION_HOST" >> ~/.ssh/known_hosts
-
-      - name: Run pre-deploy command (optional)
-        if: ${{ secrets.PRODUCTION_BEFORE_DEPLOY_COMMAND != '' }}
-        env:
-          PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
-          PRODUCTION_USER: ${{ secrets.PRODUCTION_USER }}
-          PRODUCTION_PORT: ${{ secrets.PRODUCTION_PORT }}
-          COMMAND: ${{ secrets.PRODUCTION_BEFORE_DEPLOY_COMMAND }}
-        run: |
-          set -euo pipefail
-          ssh -p "${PRODUCTION_PORT:-22}" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "$COMMAND"
-
-      - name: Deploy via rsync
-        env:
-          PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
-          PRODUCTION_USER: ${{ secrets.PRODUCTION_USER }}
-          PRODUCTION_PORT: ${{ secrets.PRODUCTION_PORT }}
-          PRODUCTION_SSH_KEY: ${{ secrets.PRODUCTION_SSH_KEY }}
-          PRODUCTION_PATH: ${{ secrets.PRODUCTION_PATH }}
-        run: |
-          bash deploy/legacy-rsync-deploy.sh
-
-      - name: Run post-deploy command (optional)
-        if: ${{ secrets.PRODUCTION_AFTER_DEPLOY_COMMAND != '' }}
-        env:
-          PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
-          PRODUCTION_USER: ${{ secrets.PRODUCTION_USER }}
-          PRODUCTION_PORT: ${{ secrets.PRODUCTION_PORT }}
-          COMMAND: ${{ secrets.PRODUCTION_AFTER_DEPLOY_COMMAND }}
-        run: |
-          set -euo pipefail
-          ssh -p "${PRODUCTION_PORT:-22}" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "$COMMAND"
-
-      - name: Optional remote PHP syntax check
-        if: ${{ vars.PRODUCTION_REMOTE_PHP_LINT_COMMAND != '' }}
-        env:
-          PRODUCTION_HOST: ${{ secrets.PRODUCTION_HOST }}
-          PRODUCTION_USER: ${{ secrets.PRODUCTION_USER }}
-          PRODUCTION_PORT: ${{ secrets.PRODUCTION_PORT }}
-          COMMAND: ${{ vars.PRODUCTION_REMOTE_PHP_LINT_COMMAND }}
-        run: |
-          set -euo pipefail
-          ssh -p "${PRODUCTION_PORT:-22}" "${PRODUCTION_USER}@${PRODUCTION_HOST}" "$COMMAND"
-        # This step uses a repository/environment VARIABLE (not a secret),
-        # since it's a command string, not sensitive data. It is entirely
-        # optional; the deploy succeeds without it. Example value:
-        # "cd /var/www/modernist && php -l index.php"
+          status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$PRODUCTION_URL" || echo "000")
+          echo "GET $PRODUCTION_URL -> HTTP $status"
+          if [ "$status" -ge 500 ] || [ "$status" = "000" ]; then
+            echo "::warning::Production URL did not respond healthily after deploy (HTTP $status). Deploy already completed; this is a post-deploy check only, not a rollback trigger."
+          fi
 
       - name: Deployment summary
         run: |
-          echo "Deployed commit $(git rev-parse HEAD) to production." >> "$GITHUB_STEP_SUMMARY"
+          echo "Deployed commit $(git rev-parse HEAD) to production via FTP." >> "$GITHUB_STEP_SUMMARY"

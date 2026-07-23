@@ -1,16 +1,25 @@
 # Deployment exclusion list for modern-legacy
 #
-# rsync --exclude-from file. Anything matched here is never copied to the
-# production server by deploy/legacy-rsync-deploy.sh or
-# .github/workflows/deploy-production.yml.
-#
 # This is the primary safety layer that keeps known-dangerous legacy files
 # (see docs/legacy-critical-audit/security-findings.md) out of the deployed
 # docroot. Do NOT remove entries from this file without updating the audit
 # docs and confirming the underlying risk has actually been fixed.
 #
-# Patterns are rsync filter patterns (relative to the repo root unless they
-# start with a leading path).
+# Patterns are written as rsync filter patterns (relative to the repo root
+# unless they start with a leading path). This is the source of truth for
+# "what must never be deployed".
+#
+# Current production deployment is FTP (see
+# .github/workflows/deploy-production.yml), via the SamKirkland/FTP-Deploy-Action
+# GitHub Action. That action does not support reading exclusions from a file
+# — its `exclude:` input only accepts an inline glob list in the workflow —
+# so the pattern list below is hand-duplicated (in glob syntax) inside
+# deploy-production.yml. If you add/remove a pattern here, update that
+# workflow's `exclude:` block too.
+#
+# deploy/legacy-rsync-deploy.sh (an rsync/SSH-based deploy script) also reads
+# this file, but it is NOT currently used — production has no SSH access.
+# It's kept only as future reference; see the header of that script.
 
 # --- VCS / CI / editor / agent metadata: never deploy ---
 .git/

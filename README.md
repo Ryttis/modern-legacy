@@ -40,13 +40,22 @@ Then:
    deployment-exclusion guardrail, secret scan, admin action auth-guard check.
 3. Merge once required checks pass (and review, if a reviewer is available).
 4. `.github/workflows/deploy-production.yml` runs automatically against
-   `main` and deploys via `rsync`, excluding dangerous/non-production files
-   per [`deploy/exclude-from-deploy.txt`](deploy/exclude-from-deploy.txt).
+   `main` and deploys via **FTP** (production has no SSH access), excluding
+   dangerous/non-production files per
+   [`deploy/exclude-from-deploy.txt`](deploy/exclude-from-deploy.txt) (the
+   same patterns, hand-duplicated in the workflow since the FTP action can't
+   read an exclude file directly).
 5. If the `production` GitHub Environment requires reviewer approval, approve
    the deployment run in the Actions tab.
+
+FTP deployment has real limitations vs. an SSH-based setup: no remote
+commands, no automatic database backup, no server-side PHP lint, and harder
+rollback. See [`docs/deployment/production-server.md`](docs/deployment/production-server.md)
+for details and the plan to switch to SSH/rsync if server access ever allows
+it.
 
 See also:
 
 - [`docs/deployment/git-workflow.md`](docs/deployment/git-workflow.md) — branch strategy and required branch protection rules.
-- [`docs/deployment/github-secrets.md`](docs/deployment/github-secrets.md) — secrets required for deployment and how to create the SSH deploy key.
+- [`docs/deployment/github-secrets.md`](docs/deployment/github-secrets.md) — FTP secrets required for deployment.
 - [`docs/deployment/production-server.md`](docs/deployment/production-server.md) — server requirements, backup, and rollback.
