@@ -1,4 +1,4 @@
-<?php include('assets/header.inc.php'); ?>
+<?php require_once __DIR__ . '/../includes/env.php'; include('assets/header.inc.php'); ?>
 
 <script src="https://www.google.com/recaptcha/api.js"></script>
 
@@ -23,7 +23,7 @@
             <button
                 class="g-recaptcha"
                 type="submit"
-                data-sitekey="6Le1V0wqAAAAAKq_XMGAA5mnFpKFrXxNcOJms65V"
+                data-sitekey="<?php echo htmlspecialchars(env_required('RECAPTCHA_SITE_KEY'), ENT_QUOTES, 'UTF-8'); ?>"
                 data-callback='onRecaptchaSuccess'
                 >Send message</button>
             <?php if(isset($_GET['success'])): ?>

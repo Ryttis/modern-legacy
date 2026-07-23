@@ -98,21 +98,30 @@ Because these directories are excluded from sync entirely, a brand-new
 server (one that doesn't already have these images) needs them populated
 once, out of band, before this pipeline is relied on.
 
-## Where production-only config should live
+## Where production-only config lives: `.env`
 
-Currently `config.php`, `en/config.php`, and `kmsaadmin/config.php` hard-code
-the database password and other secrets directly in the deployed files (see
-[`security-findings.md`](../legacy-critical-audit/security-findings.md)). This
-CI/CD setup does not fix that by itself. Once credentials are rotated and
-externalized (per `fix-roadmap.md` immediate fix #4), production-only config
-should live in one of:
+`config.php`, `en/config.php`, `kmsaadmin/config.php`, `form_action.php`,
+`en/form_action.php`, `kontaktai.php`, `en/kontaktai.php`, and the MapTiler
+map pages no longer hard-code the database password, reCAPTCHA keys, or the
+MapTiler key — they read them via `includes/env.php` at runtime. Full detail:
+[`legacy-env.md`](legacy-env.md).
 
-- A git-ignored `config.local.php` on the server, loaded by the committed
-  `config.php` (which itself contains no real values), or
-- Environment variables set on the server/PHP-FPM pool and read via `getenv()`.
+The short version for this server:
 
-Either way, real credentials must never re-enter the Git history — add them
-to `.gitignore` once the config split happens.
+- Production needs a `.env` file in the project root (or equivalent real
+  environment variables set at the server/PHP-FPM level) containing the
+  variables listed in [`.env.example`](../../.env.example).
+- `.env` must be created **manually, once, out of band** — FTP deployment
+  never uploads it (it's git-ignored, so it's never part of the checkout
+  being deployed) and therefore can never overwrite or delete whatever is
+  already on the server.
+- If `.env` is missing or incomplete on the server, pages calling
+  `env_required()` (e.g. any page hitting the database, or the contact form)
+  will fail closed with a generic 500 rather than silently misbehaving.
+- The MySQL password and reCAPTCHA secret were already flagged as
+  compromised by the audit (committed to a repo with a GitHub remote) —
+  moving them into `.env` does not undo that. Rotation is still required; see
+  [`legacy-env.md`](legacy-env.md#rotating-credentials).
 
 ## Backup before deploy
 

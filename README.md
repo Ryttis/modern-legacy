@@ -14,6 +14,15 @@ live production source until that migration happens.
 documents known critical/high security issues (unauthenticated admin write
 endpoints, committed secrets, etc.) and what must not be deployed as-is.
 
+## Configuration (`.env`)
+
+Database credentials, the reCAPTCHA keys, and the MapTiler key are read from
+environment variables at runtime (via `includes/env.php`), not hard-coded in
+PHP. Copy [`.env.example`](.env.example) to `.env` and fill in real values
+for local development; **never commit `.env`** (it's git-ignored). See
+[`docs/deployment/legacy-env.md`](docs/deployment/legacy-env.md) for the full
+variable list, how production is provisioned, and credential rotation steps.
+
 ## CI/CD workflow
 
 All changes go through a branch → Pull Request → CI → merge → production
@@ -37,7 +46,8 @@ Then:
 
 1. Open a Pull Request into `main` on GitHub.
 2. Wait for CI (`.github/workflows/ci.yml`) to pass — PHP syntax check,
-   deployment-exclusion guardrail, secret scan, admin action auth-guard check.
+   deployment-exclusion guardrail, runtime secret scan (blocking), broad
+   secret-scan hygiene reminder (non-blocking), admin action auth-guard check.
 3. Merge once required checks pass (and review, if a reviewer is available).
 4. `.github/workflows/deploy-production.yml` runs automatically against
    `main` and deploys via **FTP** (production has no SSH access), excluding

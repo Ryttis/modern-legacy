@@ -1,3 +1,4 @@
+<?php require_once __DIR__ . '/../includes/env.php'; ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -53,7 +54,7 @@
     </div>
 
     <script>
-        const key = 'yCLDygzoRrd9ScGsk8ab';
+        const key = '<?php echo htmlspecialchars(env_required('MAPTILER_KEY'), ENT_QUOTES, 'UTF-8'); ?>';
 
         let map = L.map('map').setView([54.90,23.9041959], 14);
         const mtLayer = L.maptilerLayer({

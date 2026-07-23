@@ -1,4 +1,4 @@
-<?php include('assets/header.inc.php'); ?>
+<?php require_once __DIR__ . '/includes/env.php'; include('assets/header.inc.php'); ?>
 
     <style>
         #map {
@@ -186,7 +186,7 @@
     <script src="https://cdn.maptiler.com/leaflet-maptilersdk/v4.1.0/leaflet-maptilersdk.umd.min.js"></script>
    
     <script>
-        const key = 'yCLDygzoRrd9ScGsk8ab';
+        const key = '<?php echo htmlspecialchars(env_required('MAPTILER_KEY'), ENT_QUOTES, 'UTF-8'); ?>';
 
         const kaunasBounds = L.latLngBounds(
             [54.85, 23.85], 

@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/../includes/env.php';
+
 // ini_set('display_errors', 1);
 // ini_set('display_startup_errors', 1);
 // error_reporting(E_ALL);
@@ -7,8 +9,8 @@
 $errors = [];
 $errorMessage = '';
 
-$site   = '6Le1V0wqAAAAAKq_XMGAA5mnFpKFrXxNcOJms65V';
-$secret = '6Le1V0wqAAAAAB5JES0vcogd8SXhYFz8Nz1DKLLX';
+$site   = env_required('RECAPTCHA_SITE_KEY');
+$secret = env_required('RECAPTCHA_SECRET_KEY');
 
 if (!empty($_POST)) {
     $name = $_POST['vardas'];
@@ -48,9 +50,9 @@ if (!empty($_POST)) {
         header('Location: kontaktai.php?error');
         exit;
     } else {
-        $toEmail = 'kulturos.paveldo.skyrius@kaunas.lt';
+        $toEmail = env_value('CONTACT_MAIL_TO', 'kulturos.paveldo.skyrius@kaunas.lt');
         $emailSubject = 'Nauja žinutė iš modernist.kaunas.lt';
-        $headers = ['From' => 'MODERNIST KAUNAS <helpdesk@kaunas.lt>', 'Reply-To' => $email, 'Content-type' => 'text/html;charset=UTF-8'];
+        $headers = ['From' => env_value('CONTACT_MAIL_FROM', 'MODERNIST KAUNAS <helpdesk@kaunas.lt>'), 'Reply-To' => $email, 'Content-type' => 'text/html;charset=UTF-8'];
 
         $bodyParagraphs = ["Vardas: {$name}<br>", "El. Paštas: {$email}<br>", "Tema: {$topic}<br>", "Žinutė:", $message];
         $body = join(PHP_EOL, $bodyParagraphs);

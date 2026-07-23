@@ -100,26 +100,83 @@ jobs:
           # Informational only — never fails the build.
           exit 0
 
-  secret-scan:
-    name: Secret scan (non-blocking)
+  # BLOCKING: precise, value-shaped patterns only, scoped to runtime files
+  # (not docs/, not deploy/, not the known-legacy MODERNIS_BACKUP/ copy).
+  # This does not match on variable/constant *names* like DB_PASSWORD or
+  # RECAPTCHA_SECRET_KEY (those are legitimate now — see includes/env.php,
+  # config.php, form_action.php) — it only matches the *shape* of an actual
+  # hard-coded secret value:
+  #   - a define('DB_PASSWORD'/'DB_PASS', '<literal>') call
+  #   - a Google reCAPTCHA-shaped key literal (6L + 38 chars)
+  #   - PEM private key material
+  # As of the .env migration, runtime PHP files no longer contain hard-coded
+  # secrets, so this job is blocking. If it ever fires, a real secret literal
+  # has been committed — fix it by moving the value to .env (see
+  # docs/deployment/legacy-env.md) before merging.
+  secret-scan-runtime:
+    name: Secret scan — runtime files (blocking)
     runs-on: ubuntu-latest
-    # Non-blocking: the legacy repo is known to currently contain committed
-    # secrets (see docs/legacy-critical-audit/security-findings.md, finding
-    # #4 and the "reCAPTCHA secret" finding). Those must be ROTATED — deleting
-    # or hiding the file does not undo a secret that was ever pushed to
-    # GitHub. This job is a visibility aid, not a merge gate, until rotation
-    # is complete. Flip continue-on-error to false once secrets are rotated
-    # and moved out of the repo.
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan for hard-coded secret VALUES (not variable names)
+        run: |
+          set -euo pipefail
+          found=0
+
+          scan() {
+            local label="$1"
+            local pattern="$2"
+            matches=$(grep -rIlP \
+              --exclude-dir=.git \
+              --exclude-dir=.github \
+              --exclude-dir=docs \
+              --exclude-dir=deploy \
+              --exclude-dir=MODERNIS_BACKUP \
+              --exclude=*.md \
+              --exclude=.env.example \
+              -- "$pattern" . || true)
+            if [ -n "$matches" ]; then
+              echo "::error::${label} — matched in the following files (values not printed):"
+              echo "$matches" | sed 's/^/  - /'
+              found=1
+            fi
+          }
+
+          scan "Hard-coded DB_PASSWORD/DB_PASS define()" "define\s*\(\s*['\"]DB_(PASSWORD|PASS)['\"]\s*,\s*['\"][^'\"]+['\"]"
+          scan "reCAPTCHA-shaped key literal (6L...)" "6L[0-9A-Za-z_-]{38}"
+          scan "Private key material" "BEGIN (RSA|EC|OPENSSH|PGP) PRIVATE KEY"
+
+          if [ "$found" -eq 1 ]; then
+            echo
+            echo "A real hard-coded secret value was found in a committed runtime file."
+            echo "Move it to .env and read it via env_required()/env_value() from"
+            echo "includes/env.php instead. See docs/deployment/legacy-env.md."
+            exit 1
+          fi
+          echo "No hard-coded secret values found in runtime files."
+
+  # NON-BLOCKING: broad keyword-based awareness scan. Deliberately looser
+  # than secret-scan-runtime above (matches on words like "password"/"secret"
+  # wherever they appear, including in variable names, MODERNIS_BACKUP/, and
+  # any leftover mentions the precise job above wouldn't catch) — that
+  # looseness means it WILL flag legitimate things (e.g. the word "password"
+  # in an HTML form label) and known-but-not-yet-cleaned files
+  # (MODERNIS_BACKUP/ still has its own committed secrets — see
+  # docs/legacy-critical-audit/security-findings.md finding #5). It exists as
+  # a reminder, not a gate: docs/*.md and .env.example are excluded so this
+  # never fires on documentation merely discussing secrets.
+  secret-scan-hygiene:
+    name: Secret scan — broad hygiene reminder (non-blocking)
+    runs-on: ubuntu-latest
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
 
-      - name: Grep for suspicious secret patterns (filenames only)
+      - name: Grep for suspicious keywords (filenames only)
         run: |
           set -euo pipefail
           patterns=(
-            'DB_PASS'
-            'DB_PASSWORD'
             '[Pp]assword'
             '[Ss]ecret'
             'recaptcha'
@@ -131,7 +188,13 @@ jobs:
           )
           found=0
           for p in "${patterns[@]}"; do
-            matches=$(grep -rIl -E "$p" --exclude-dir=.git --exclude-dir=.github . || true)
+            matches=$(grep -rIl -E "$p" \
+              --exclude-dir=.git \
+              --exclude-dir=.github \
+              --exclude-dir=docs \
+              --exclude=*.md \
+              --exclude=.env.example \
+              . || true)
             if [ -n "$matches" ]; then
               echo "::warning::Pattern '$p' matched in the following files (values not printed):"
               echo "$matches" | sed 's/^/  - /'
@@ -140,16 +203,16 @@ jobs:
           done
           if [ "$found" -eq 1 ]; then
             echo
-            echo "Secrets must be rotated (MySQL password, reCAPTCHA secret, any API keys)"
-            echo "and moved out of committed files into environment variables or a"
-            echo "git-ignored config file. See docs/legacy-critical-audit/security-findings.md"
-            echo "and docs/legacy-critical-audit/fix-roadmap.md item 4."
+            echo "This is a broad, non-blocking reminder scan — matches include variable"
+            echo "names and known-legacy files (e.g. MODERNIS_BACKUP/), not just real secrets."
+            echo "For an actual hard-coded secret VALUE in a runtime file, see the"
+            echo "secret-scan-runtime job instead. MODERNIS_BACKUP/ still contains real"
+            echo "committed secrets pending removal — see"
+            echo "docs/legacy-critical-audit/security-findings.md finding #5."
           else
-            echo "No suspicious patterns matched."
+            echo "No suspicious keywords matched."
           fi
-          # This job is allowed to fail (continue-on-error: true above), so a
-          # real match still shows up clearly in the checks list without
-          # blocking PR merges while secret rotation is pending.
+          # Non-blocking by design (continue-on-error: true above).
           exit $found
 
   admin-action-guard-check:

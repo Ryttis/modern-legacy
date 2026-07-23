@@ -118,6 +118,15 @@ jobs:
             **/*.swp
             **/*~
             **/.DS_Store
+            # .env is git-ignored and never checked out, so this never matches
+            # anything in practice — listed as defense in depth. See
+            # docs/deployment/legacy-env.md: server secrets must survive
+            # deploys untouched, and this deploy job must never upload or
+            # overwrite the server's real .env.
+            .env
+            .env.local
+            .env.*.local
+            .env.example
             # --- runtime upload directories: never uploaded to or deleted from by this job ---
             ehl-pastatai/**
             ehl-upload/**

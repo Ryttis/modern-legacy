@@ -1,0 +1,17 @@
+# Local secrets — never commit. See .env.example for the placeholder template
+# and docs/deployment/legacy-env.md for how these are provisioned.
+.env
+.env.local
+.env.*.local
+
+# Editor / OS
+.DS_Store
+
+# IDE
+.idea/
+
+# Legacy backup with old hard-coded secrets — never commit/deploy
+MODERNIS_BACKUP/
+
+# IDE
+.idea/

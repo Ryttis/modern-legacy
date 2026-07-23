@@ -61,3 +61,11 @@ en/reverse.php
 *.swp
 *~
 .DS_Store
+
+# --- Local secrets file: git-ignored, so it's never actually checked out by
+# CI/deploy — listed here only as defense in depth. See
+# docs/deployment/legacy-env.md. Never overwrite the server's real .env. ---
+.env
+.env.local
+.env.*.local
+.env.example

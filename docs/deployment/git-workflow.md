@@ -35,8 +35,11 @@ schema, or server configuration by itself.
 - CI ([`ci.yml`](../../.github/workflows/ci.yml)) must run and pass:
   - PHP syntax check
   - deployment-exclusion check
-  - secret scan (currently non-blocking — see below)
-  - admin action auth-guard check
+  - runtime secret scan (`secret-scan-runtime`, blocking — fails on real
+    hard-coded secret values, not on variable names; see
+    [`legacy-env.md`](legacy-env.md))
+  - broad secret-scan hygiene reminder (`secret-scan-hygiene`, non-blocking)
+  - admin action auth-guard check (currently non-blocking — see below)
 - A human review is required whenever more than one person is available to review.
   For a single-maintainer period, self-merge after CI passes is acceptable, but the
   PR must still exist so the diff and CI result are recorded.

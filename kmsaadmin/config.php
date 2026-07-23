@@ -1,9 +1,11 @@
 <?php
 
-define('DB_SERVER', 'localhost');
-define('DB_USERNAME', 'modernis');
-define('DB_PASSWORD', 'jMtES6YajGFs');
-define('DB_NAME', 'modernis');
+require_once __DIR__ . '/../includes/env.php';
+
+define('DB_SERVER', env_required('DB_HOST'));
+define('DB_USERNAME', env_required('DB_USER'));
+define('DB_PASSWORD', env_required('DB_PASSWORD'));
+define('DB_NAME', env_required('DB_NAME'));
 
 define('SESSION_ID', 'KAUNOSALEPGPGP');
 

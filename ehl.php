@@ -1,4 +1,4 @@
-<?php include('assets/header.inc.php'); ?>
+<?php require_once __DIR__ . '/includes/env.php'; include('assets/header.inc.php'); ?>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link href="https://cdn.maptiler.com/maptiler-sdk-js/v2.2.2/maptiler-sdk.css" rel="stylesheet" />
@@ -89,7 +89,7 @@
     <script src="https://cdn.maptiler.com/maptiler-sdk-js/v2.2.2/maptiler-sdk.umd.js"></script>
     <script src="https://cdn.maptiler.com/leaflet-maptilersdk/v2.0.0/leaflet-maptilersdk.js"></script>
     <script>
-        const key = 'yCLDygzoRrd9ScGsk8ab';
+        const key = '<?php echo htmlspecialchars(env_required('MAPTILER_KEY'), ENT_QUOTES, 'UTF-8'); ?>';
 
         let map = L.map('map').setView([54.90,23.9041959], 14);
         const mtLayer = L.maptilerLayer({
