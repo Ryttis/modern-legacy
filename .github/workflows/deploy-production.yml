@@ -132,14 +132,20 @@ jobs:
             ehl-upload/**
             news-img/**
 
-      - name: Verify PRODUCTION_URL responds (optional)
-        if: ${{ secrets.PRODUCTION_URL != '' }}
+      - name: Verify PRODUCTION_URL responds optional
         env:
           PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
         run: |
           set -euo pipefail
+
+          if [ -z "${PRODUCTION_URL:-}" ]; then
+            echo "PRODUCTION_URL is not set; skipping post-deploy health check."
+            exit 0
+          fi
+
           status=$(curl -s -o /dev/null -w '%{http_code}' --max-time 15 "$PRODUCTION_URL" || echo "000")
           echo "GET $PRODUCTION_URL -> HTTP $status"
+
           if [ "$status" -ge 500 ] || [ "$status" = "000" ]; then
             echo "::warning::Production URL did not respond healthily after deploy (HTTP $status). Deploy already completed; this is a post-deploy check only, not a rollback trigger."
           fi
