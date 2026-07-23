@@ -1,98 +1,54 @@
 # GitHub Secrets for Production Deployment
 
-`.github/workflows/deploy-production.yml` deploys `main` to production using an
-SSH key and connection details stored as GitHub secrets. **No real values are
-stored in this repository** — this document only explains what to create and
-where.
+`.github/workflows/deploy-production.yml` deploys `main` to production over
+**FTP**, because the production server has no SSH access. **No real values
+are stored in this repository** — this document only explains what to create
+and where. Never paste real secret values into a PR, issue, or commit.
 
 Prefer creating these as **environment secrets** on the `production`
 [GitHub Environment](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment)
 (Settings → Environments → production → Environment secrets) rather than
-repository-wide secrets, so they are only exposed to deployment runs and can be
-gated behind required reviewers. Repository-wide secrets also work if
-environments aren't available on your plan.
+repository-wide secrets, so they are only exposed to deployment runs and can
+be gated behind required reviewers. If they currently exist as
+repository-wide secrets, move them to the `production` environment and
+remove the repository-wide copies.
 
 ## Required secrets
 
-| Secret | Purpose |
-|---|---|
-| `PRODUCTION_HOST` | Hostname or IP of the production server. |
-| `PRODUCTION_USER` | SSH user the deploy connects as. Should be a dedicated deploy user, not a shared/admin account. |
-| `PRODUCTION_PORT` | SSH port (commonly `22`, but many hosts use a custom port). |
-| `PRODUCTION_SSH_KEY` | Private half of a dedicated SSH deploy key (see below). |
-| `PRODUCTION_PATH` | Absolute path to the docroot on the server that `rsync` deploys into, e.g. `/var/www/modernist.kaunas.lt/public_html`. |
-
-## Optional secrets
+These already exist in this repository per the current production setup:
 
 | Secret | Purpose |
 |---|---|
-| `PRODUCTION_BEFORE_DEPLOY_COMMAND` | Shell command run over SSH on the server before rsync (e.g. put the app in maintenance mode). |
-| `PRODUCTION_AFTER_DEPLOY_COMMAND` | Shell command run over SSH on the server after rsync (e.g. clear an opcode cache). |
+| `FTP_HOST` | Hostname or IP of the production FTP/FTPS server. |
+| `FTP_USERNAME` | FTP account used for deployment. Should be a dedicated deploy account with access scoped to the web root only, not a full hosting-control-panel login, if the host allows creating one. |
+| `FTP_PASSWORD` | Password for `FTP_USERNAME`. **Never printed in workflow logs** — GitHub Actions automatically masks secret values in logs, and no workflow step in this repo echoes it. |
+| `FTP_PORT` | FTP/FTPS port (commonly `21`). |
+| `FTP_REMOTE_PATH` | Absolute or relative path on the server that deployment uploads into (the web-served docroot), e.g. `/public_html` or `/httpdocs`. |
+| `PRODUCTION_URL` | Public URL of the live site (e.g. `https://modernist.kaunas.lt`), used only for an optional post-deploy HTTP health check. Not sensitive, but stored as a secret per the existing repository convention. |
 
-## Optional repository/environment variable
+## FTP protocol note
 
-| Variable (not secret) | Purpose |
-|---|---|
-| `PRODUCTION_REMOTE_PHP_LINT_COMMAND` | If set, run after deploy over SSH to sanity-check the deployed code, e.g. `cd /var/www/modernist.kaunas.lt/public_html && find . -name '*.php' -exec php -l {} \;`. Not a secret, so it's stored as a [repository/environment variable](https://docs.github.com/en/actions/learn-github-actions/variables), not a secret. |
+`deploy-production.yml` requests `protocol: ftps` (explicit FTP over TLS) by
+default, since it's more secure than plain FTP for credentials in transit. If
+the production host only supports plain FTP, change `protocol: ftps` to
+`protocol: ftp` in the workflow — check with whoever manages hosting before
+assuming either way.
 
-## Creating a dedicated SSH deploy key
+## Why FTP instead of SSH/rsync
 
-Do not reuse a personal SSH key. Generate a key used only by GitHub Actions for
-this repository:
-
-```bash
-ssh-keygen -t ed25519 -C "github-actions-modern-legacy-production" -f ./modern-legacy-deploy-key -N ""
-```
-
-This produces two files:
-
-- `modern-legacy-deploy-key` — the **private** key.
-- `modern-legacy-deploy-key.pub` — the **public** key.
-
-### Private key → GitHub secret
-
-Copy the full contents of `modern-legacy-deploy-key` (including the
-`-----BEGIN OPENSSH PRIVATE KEY-----` / `-----END OPENSSH PRIVATE KEY-----`
-lines) into the `PRODUCTION_SSH_KEY` secret.
-
-### Public key → production server
-
-Append the contents of `modern-legacy-deploy-key.pub` to the deploy user's
-`~/.ssh/authorized_keys` on the production server:
-
-```bash
-# on the production server, as the deploy user
-mkdir -p ~/.ssh && chmod 700 ~/.ssh
-cat modern-legacy-deploy-key.pub >> ~/.ssh/authorized_keys
-chmod 600 ~/.ssh/authorized_keys
-```
-
-### Restrict the deploy user
-
-Where possible:
-
-- Create a dedicated system user for deployments (not `root`, not a shared
-  admin login).
-- Restrict its filesystem access to the deployment path (`PRODUCTION_PATH`)
-  and, if the server supports it, use `chroot`/`rssh`/`scponly`/an
-  `authorized_keys` `command=` restriction so the key can only be used for
-  rsync-style transfers, not an interactive shell.
-- Do not give the deploy user database credentials or sudo access — this
-  deployment method only copies files, it never runs schema changes.
-
-### Delete local copies
-
-Once both halves are stored (GitHub secret + server `authorized_keys`), delete
-the local key files:
-
-```bash
-rm ./modern-legacy-deploy-key ./modern-legacy-deploy-key.pub
-```
+The production server does not expose SSH, so the SSH/rsync-based deployment
+approach (`deploy/legacy-rsync-deploy.sh`) cannot be used today. That script
+is kept in the repository only as future reference — it is not called by any
+workflow. See [`production-server.md`](production-server.md) for the
+limitations this implies (no remote commands, no automatic DB backup, no
+server-side PHP lint, harder rollback) and what to do if SSH access becomes
+available later.
 
 ## Rotation note
 
-This deploy key is separate from — and does not replace — the credential
-rotation already required by the [security audit](../legacy-critical-audit/security-findings.md):
-the MySQL password and reCAPTCHA secret currently committed in `config.php` /
+These FTP credentials are separate from — and do not replace — the
+credential rotation already required by the
+[security audit](../legacy-critical-audit/security-findings.md): the MySQL
+password and reCAPTCHA secret currently committed in `config.php` /
 `en/config.php` / `kmsaadmin/config.php` / `form_action.php` must still be
 rotated and moved out of the repository, regardless of this CI/CD setup.

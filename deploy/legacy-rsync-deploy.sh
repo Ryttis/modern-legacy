@@ -1,5 +1,19 @@
 #!/usr/bin/env bash
 #
+# ============================================================================
+# NOT CURRENTLY USED. Kept only as future reference.
+#
+# Production has no SSH access, so this script is not called by any GitHub
+# Actions workflow. Current production deployment uses FTP — see
+# .github/workflows/deploy-production.yml and
+# docs/deployment/github-secrets.md.
+#
+# If SSH access to the production server becomes available in the future,
+# this script (and re-adding an SSH-based job to deploy-production.yml) can
+# replace the FTP deployment. Until then, treat this file as documentation
+# of a possible future deployment path, not an active part of the pipeline.
+# ============================================================================
+#
 # Deploys the current working tree (as checked out by CI, from `main`) to the
 # production server over rsync/SSH, honoring deploy/exclude-from-deploy.txt.
 #

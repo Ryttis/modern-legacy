@@ -46,12 +46,22 @@ schema, or server configuration by itself.
 
 - Deployed **only** from `main`, only via the
   [`deploy-production.yml`](../../.github/workflows/deploy-production.yml) workflow.
-- No manual FTP/SFTP edits directly on the server. Any manual out-of-band change is
-  effectively undocumented and will be silently overwritten (or diverge from) the
-  next deploy — treat direct server edits as an incident, not a shortcut.
+- **Deployment method: FTP.** The production server has no SSH access, so
+  deployment uses FTP/FTPS (the `SamKirkland/FTP-Deploy-Action` GitHub Action),
+  not rsync/SSH. See [`github-secrets.md`](github-secrets.md) and
+  [`production-server.md`](production-server.md) for details and the
+  limitations that come with FTP-only access (no remote commands, no
+  automatic DB backup, no server-side PHP lint, harder rollback).
+- No manual FTP/SFTP edits directly on the server outside this pipeline. Any
+  manual out-of-band change is effectively undocumented and will be silently
+  overwritten (or diverge from) the next deploy — treat direct server edits
+  as an incident, not a shortcut.
 - Deployment excludes dangerous/non-production files — see
   [`deploy/exclude-from-deploy.txt`](../../deploy/exclude-from-deploy.txt) and the
-  [audit findings](../legacy-critical-audit/security-findings.md).
+  [audit findings](../legacy-critical-audit/security-findings.md). Because the
+  FTP action can't read exclusions from a file, the same pattern list is
+  hand-duplicated inside `deploy-production.yml`'s `exclude:` block — keep
+  both in sync when either changes.
 - Emergency hotfixes still go through a PR (it can be fast — a PR can be opened and
   merged in minutes). Bypassing PR review is only acceptable if GitHub itself is
   unreachable; in that case, the change must be re-created as a proper PR
@@ -78,9 +88,13 @@ targets a GitHub **environment** named `production`. Configure it in
 **Settings → Environments → production**:
 
 - Required reviewers: restrict who can approve a deployment run before it executes.
-- Optionally restrict the environment to deployments from the `main` branch only.
-- Store `PRODUCTION_*` secrets as environment secrets on `production` rather than
-  repository-wide secrets, so they are only exposed to approved deployment runs.
+- Deployment branches: restrict to `main` only.
+- Store the FTP secrets (`FTP_HOST`, `FTP_USERNAME`, `FTP_PASSWORD`, `FTP_PORT`,
+  `FTP_REMOTE_PATH`, `PRODUCTION_URL`) as environment secrets on `production`
+  rather than repository-wide secrets, so they are only exposed to approved
+  deployment runs. If they currently exist as repository-wide secrets, move
+  them to the `production` environment (Settings → Environments → production
+  → Environment secrets) and remove the repository-wide copies.
 
 See [`github-secrets.md`](github-secrets.md) for the full secrets list and how to
 create them.
