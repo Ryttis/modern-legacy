@@ -1,0 +1,201 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+# Dangerous paths that must never be deployed to production. Kept in one place
+# so the "deploy exclusions" job and the humans reading this file agree on
+# what "dangerous" means. Must stay in sync with deploy/exclude-from-deploy.txt
+# and docs/legacy-critical-audit/security-findings.md.
+env:
+  DANGEROUS_PATTERNS: |
+    MODERNIS_BACKUP/
+    kmsaadmin/db.php
+    kmsaadmin/*.sql
+    *.sql
+    test.php
+    reverse.php
+
+jobs:
+  php-syntax-check:
+    name: PHP syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: none
+
+      - name: Lint all PHP files
+        run: |
+          set -euo pipefail
+          status=0
+          # .git is the only hard exclusion here — every tracked PHP file,
+          # including MODERNIS_BACKUP/, must at least be syntactically valid,
+          # even though MODERNIS_BACKUP is excluded from production deploys.
+          while IFS= read -r -d '' file; do
+            if ! php -l "$file" > /tmp/lint-output 2>&1; then
+              echo "::error file=$file::PHP syntax error"
+              cat /tmp/lint-output
+              status=1
+            fi
+          done < <(find . -path ./.git -prune -o -type f -name '*.php' -print0)
+          exit $status
+
+  deploy-exclusions-check:
+    name: Deployment exclusion guardrail
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify exclusion file exists
+        run: |
+          set -euo pipefail
+          if [ ! -f deploy/exclude-from-deploy.txt ]; then
+            echo "::error::deploy/exclude-from-deploy.txt is missing. This file is the safety layer that keeps dangerous legacy files (SQL dumps, MODERNIS_BACKUP/, kmsaadmin/db.php, debug scripts) out of production deploys. See docs/legacy-critical-audit/security-findings.md."
+            exit 1
+          fi
+
+      - name: Verify dangerous patterns are listed in the exclusion file
+        run: |
+          set -euo pipefail
+          missing=0
+          while IFS= read -r pattern; do
+            [ -z "$pattern" ] && continue
+            if ! grep -qF -- "$pattern" deploy/exclude-from-deploy.txt; then
+              echo "::error::Required exclusion pattern '$pattern' is missing from deploy/exclude-from-deploy.txt"
+              missing=1
+            fi
+          done <<< "$DANGEROUS_PATTERNS"
+          exit $missing
+
+      - name: Warn if dangerous files currently exist in the repo
+        run: |
+          set -euo pipefail
+          echo "The following known-dangerous files/folders exist in this checkout."
+          echo "They are excluded from production deploys by deploy/exclude-from-deploy.txt,"
+          echo "but their presence is a reminder that they must be rotated/removed per the audit"
+          echo "(docs/legacy-critical-audit/fix-roadmap.md) rather than relied on being 'just excluded' forever."
+          echo
+          found=0
+          for path in MODERNIS_BACKUP kmsaadmin/db.php test.php en/test.php reverse.php en/reverse.php; do
+            if [ -e "$path" ]; then
+              echo "::warning::Dangerous path present in repo: $path"
+              found=1
+            fi
+          done
+          if git ls-files '*.sql' | grep -q . ; then
+            echo "::warning::SQL dump files present in repo:"
+            git ls-files '*.sql'
+            found=1
+          fi
+          if [ "$found" -eq 0 ]; then
+            echo "No known-dangerous paths found."
+          fi
+          # Informational only — never fails the build.
+          exit 0
+
+  secret-scan:
+    name: Secret scan (non-blocking)
+    runs-on: ubuntu-latest
+    # Non-blocking: the legacy repo is known to currently contain committed
+    # secrets (see docs/legacy-critical-audit/security-findings.md, finding
+    # #4 and the "reCAPTCHA secret" finding). Those must be ROTATED — deleting
+    # or hiding the file does not undo a secret that was ever pushed to
+    # GitHub. This job is a visibility aid, not a merge gate, until rotation
+    # is complete. Flip continue-on-error to false once secrets are rotated
+    # and moved out of the repo.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Grep for suspicious secret patterns (filenames only)
+        run: |
+          set -euo pipefail
+          patterns=(
+            'DB_PASS'
+            'DB_PASSWORD'
+            '[Pp]assword'
+            '[Ss]ecret'
+            'recaptcha'
+            'api_key'
+            'API_KEY'
+            'MapTiler'
+            'maptiler'
+            'BEGIN (RSA|EC|OPENSSH|PGP) PRIVATE KEY'
+          )
+          found=0
+          for p in "${patterns[@]}"; do
+            matches=$(grep -rIl -E "$p" --exclude-dir=.git --exclude-dir=.github . || true)
+            if [ -n "$matches" ]; then
+              echo "::warning::Pattern '$p' matched in the following files (values not printed):"
+              echo "$matches" | sed 's/^/  - /'
+              found=1
+            fi
+          done
+          if [ "$found" -eq 1 ]; then
+            echo
+            echo "Secrets must be rotated (MySQL password, reCAPTCHA secret, any API keys)"
+            echo "and moved out of committed files into environment variables or a"
+            echo "git-ignored config file. See docs/legacy-critical-audit/security-findings.md"
+            echo "and docs/legacy-critical-audit/fix-roadmap.md item 4."
+          else
+            echo "No suspicious patterns matched."
+          fi
+          # This job is allowed to fail (continue-on-error: true above), so a
+          # real match still shows up clearly in the checks list without
+          # blocking PR merges while secret rotation is pending.
+          exit $found
+
+  admin-action-guard-check:
+    name: Admin action auth-guard check (non-blocking for now)
+    runs-on: ubuntu-latest
+    # Non-blocking: per docs/legacy-critical-audit/security-findings.md, the
+    # files below currently have NO auth check at all (finding #1, critical).
+    # Making this job blocking today would fail CI on every commit until that
+    # is fixed. Once kmsaadmin/actions/*.php are gated behind userLogged()
+    # (fix-roadmap.md, immediate fix #1), flip continue-on-error to false so
+    # this becomes a real regression guard.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check kmsaadmin/actions/*.php for an auth/session guard
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          files=(kmsaadmin/actions/*.php)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No files found in kmsaadmin/actions/ — nothing to check."
+            exit 0
+          fi
+          missing=0
+          for f in "${files[@]}"; do
+            base=$(basename "$f")
+            # login-user.php is the login handler itself; it establishes the
+            # session rather than requiring one, so it is intentionally
+            # excluded from this guard check.
+            if [ "$base" = "login-user.php" ]; then
+              continue
+            fi
+            if grep -qE 'userLogged\s*\(|isLoggedIn\s*\(|\$_SESSION\[[^]]*\]\[.?loggedin.?\]' "$f"; then
+              echo "OK: $f references an auth/session guard."
+            else
+              echo "::warning file=$f::No auth/session guard (e.g. userLogged()) found in this admin action endpoint. Per docs/legacy-critical-audit/security-findings.md this is a CRITICAL unauthenticated write/upload vulnerability."
+              missing=1
+            fi
+          done
+          if [ "$missing" -eq 1 ]; then
+            echo
+            echo "See docs/legacy-critical-audit/fix-roadmap.md, immediate fix #1:"
+            echo "gate every file in kmsaadmin/actions/ behind userLogged()."
+          fi
+          # This job is allowed to fail (continue-on-error: true above), so a
+          # real failure here still shows up clearly in the checks list
+          # without blocking PR merges while the emergency fix is pending.
+          exit $missing
