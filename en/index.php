@@ -57,17 +57,17 @@
     <h2>News</h2>
     <div class="news-container container">
         <div class="new-block">
-            <img src="https://visit.kaunas.lt/assets/Uploads/_resampled/ResizedImageWzg2NSw2NTFd/ECTN-2nd-winner2.jpg" alt="">
+            <img src="https://visit.kaunas.lt/assets/Uploads/_resampled/ResizedImageWzg2NSw2NTFd/ECTN-2nd-winner2.jpg" alt="" style="object-fit: cover;">
             <a target="_blank" href="https://visit.kaunas.lt/en/kaunastic/kaunas-modernism-continues-to-shine-now-recognized-as-one-of-sustainable-tourism-leaders/"><span class="new-title">Kaunas' Modernism Continues to Shine: Now Recognized as One of Sustainable Tourism Leaders</span></a>
             <span class="new-date">2024-10-25</span>
         </div>
         <div class="new-block">
-            <img src="https://www.kaunas.lt/wp-content/uploads/sites/13/2023/09/Artboard-3Unesco-990x557.png" alt="">
+            <img src="https://www.kaunas.lt/wp-content/uploads/sites/13/2023/09/Artboard-3Unesco-990x557.png" alt="" style="object-fit: cover;">
             <a target="_blank" href="https://en.kaunas.lt/news/historical-recognition-kaunas-interwar-architecture-is-included-in-unesco-world-heritage-list"><span class="new-title">Historical recognition: Kaunas interwar architecture is included in UNESCO World Heritage List</span></a>
             <span class="new-date">2023-09-18</span>
         </div>
         <div class="new-block">
-            <img src="https://en.kaunas.lt/wp-content/uploads/2022/02/AA_2022-02-10_005-990x557-1.jpg" alt="">
+            <img src="https://en.kaunas.lt/wp-content/uploads/2022/02/AA_2022-02-10_005-990x557-1.jpg" alt="" style="object-fit: cover;">
             <a target="_blank" href="https://en.kaunas.lt/news/record-was-set-in-kaunas-central-post-office-the-largest-toy-mosaic-created"><span class="new-title">Record Was Set in Kaunas Central Post Office: The Largest Toy Mosaic Created</span></a>
             <span class="new-date">2022-02-17</span>
         </div>
