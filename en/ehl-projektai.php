@@ -69,7 +69,18 @@
             </div>
         </div>
     </div>
+
+    <div class="container">
+        <div class="ehl-projects">
+            <div class="content-text">
+                <h2>"Re:Union" project closing exhibition in Lublin:</h2>
+                <iframe allowfullscreen="allowfullscreen" allow="clipboard-write" scrolling="no" class="fp-iframe" style="border: 0px; width: 100%; height: 600px;" src="https://heyzine.com/flip-book/e2e064abde.html"></iframe>
+            </div>
+        </div>
+    </div>
     <hr>
+    <?php /* outdated Re:Union event schedule (past dates, no year) hidden per client request 2026-07-27 */ ?>
+    <?php /*
     <div class="container">
         <div class="ehl-projects">
             <div class="content-text">
@@ -83,6 +94,7 @@
             </div>
         </div>
     </div>
+    */ ?>
     <div class="container">
         <div class="ehl-project-images">
             <img src="src/img/ehl-projektai/paveldas.jpg"  width="300" alt="www.modernist.kaunas.lt">
