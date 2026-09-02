@@ -54,27 +54,27 @@
     <h2>Naujienos</h2>
     <div class="news-container container">
         <div class="new-block">
+            <img src="https://modernist.kaunas.lt/news-img/simpoziumas.jpg" alt="" style="object-fit: cover;">
+            <a target="_blank" href="https://www.kaunas.lt/2026/09/02/stebekite-skulpturos-gimima-organizatoriai-kviecia-apsilankyti-tarptautinio-skulpturos-simpoziumo-aiksteleje/"><span class="new-title">Stebėkite skulptūros gimimą: organizatoriai kviečia apsilankyti Tarptautinio skulptūros simpoziumo aikštelėje</span></a>
+            <span class="new-date">2026-09-02</span>
+            <hr>
+            <span class="new-desc">Tarptautinio skulptūros simpoziumo organizatoriai kviečia apsilankyti kūrybinėje aikštelėje ir stebėti, kaip gimsta skulptūros.
+            </span>
+        </div>
+        <div class="new-block">
+            <img src="https://modernist.kaunas.lt/news-img/tarptautinis-skulpturos-simpoziumas-2026-13.jpg" alt="" style="object-fit: cover;">
+            <a target="_blank" href="https://www.kaunas.lt/2026/08/18/i-kauna-sugrizo-tarptautinis-skulpturos-simpoziumas-20-menininku-darbai-papuos-miesta/"><span class="new-title">Į Kauną sugrįžo Tarptautinis skulptūros simpoziumas: 20 menininkų darbai papuoš miestą</span></a>
+            <span class="new-date">2026-08-18</span>
+            <hr>
+            <span class="new-desc">Iki rugsėjo 13 dienos Kaune vyks Tarptautinis skulptūros simpoziumas, skirtas į UNESCO Pasaulio paveldo sąrašą įrašytam modernistiniam Kaunui. Antrus metus iš eilės iškilūs užsienio ir Lietuvos skulptoriai savo kūriniais interpretuos miesto tarpukario architektūrą, ieškos naujų prasmių ir meninių formų bei skulptūromis praturtins miesto galeriją – 20 granitinių skulptūrų papuoš viešąsias erdves.
+            </span>
+        </div>
+        <div class="new-block">
             <img src="https://modernist.kaunas.lt/news-img/YjDbbw9eY7Y.png__2280x1520_q85_ALIAS-newshudge_crop-smart_subsampling-2_upscale.jpg" alt="" style="object-fit: cover;">
             <a target="_blank" href="https://kpd.lrv.lt/lt/naujienos/demesio-jau-laukiame-nekilnojamojo-kulturos-paveldo-pazinimo-sklaidos-ir-leidybos-projektu-paraisku-Rql/"><span class="new-title">Dėmesio! Jau laukiame Nekilnojamojo kultūros paveldo pažinimo sklaidos ir leidybos projektų paraiškų!</span></a>
             <span class="new-date">2026-04-14</span>
             <hr>
             <span class="new-desc">Skelbiama 2026 m. Nekilnojamojo kultūros paveldo pažinimo sklaidos, atgaivinimo ir leidybos projektų paraiškų priėmimo pradžia dalinio finansavimo konkursui!
-            </span>
-        </div>
-        <div class="new-block">
-            <img src="https://modernist.kaunas.lt/news-img/Kauno-panorama-990x557.jpg" alt="" style="object-fit: cover;">
-            <a target="_blank" href="https://www.kaunas.lt/2026/03/19/paskelbtas-savivaldybiu-paveldosauginis-indeksas-kaunas-toliau-lyderiauja-kulturos-paveldo-apsaugos-srityje/"><span class="new-title">Paskelbtas Savivaldybių paveldosauginis indeksas: Kaunas toliau lyderiauja kultūros paveldo apsaugos srityje</span></a>
-            <span class="new-date">2026-03-19</span>
-            <hr>
-            <span class="new-desc">Kovą Valstybinei kultūros paveldo komisijai paskelbus naujausią savivaldybių paveldosauginį indeksą už 2024-uosius, Kaunas dar kartą įtvirtino savo, kaip vieno iš lyderio kultūros paveldo srityje, poziciją. 
-            </span>
-        </div>
-        <div class="new-block">
-            <img src="https://modernist.kaunas.lt/news-img/Kauno-Evangeliku-reformatu-baznycia-1-990x557.jpg" alt="" style="object-fit: cover;">
-            <a target="_blank" href="https://www.kaunas.lt/2026/02/19/atkuriamas-architekturos-akcentas-kaunas-finansuos-evangeliku-reformatu-baznycios-boksto-atstatyma/"><span class="new-title">Atkuriamas architektūros akcentas – Kaunas finansuos Evangelikų reformatų bažnyčios bokšto atstatymą</span></a>
-            <span class="new-date">2026-02-19</span>
-            <hr>
-            <span class="new-desc">Nuosekliai puoselėdamas istorinį ir sakralinį paveldą, miestas prisideda prie dar vieno reikšmingo darbo – per Paveldotvarkos programą bus finansuojamas Evangelikų reformatų bažnyčios bokšto atstatymas.
             </span>
         </div>
     </div>
