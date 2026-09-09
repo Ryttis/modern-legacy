@@ -41,10 +41,18 @@ if [ "$confirm" != "DEPLOY" ]; then
 fi
 
 lftp -u "$FTP_USERNAME","$FTP_PASSWORD" -p "$FTP_PORT" "$FTP_HOST" <<EOF
+set cmd:fail-exit yes
+set net:timeout 20
+set net:max-retries 1
 set ftp:ssl-allow no
-mirror -R --verbose \
+set ftp:use-feat no
+set ftp:passive-mode on
+cd /
+mirror -R --verbose --only-newer \
   --exclude-glob ".git/**" \
   --exclude-glob ".github/**" \
+  --exclude-glob ".agents/**" \
+  --exclude-glob ".codex/**" \
   --exclude-glob ".idea/**" \
   --exclude-glob "docs/**" \
   --exclude-glob "deploy/**" \
