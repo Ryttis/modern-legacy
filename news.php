@@ -21,6 +21,22 @@
             </span>
         </div>
         <div class="new-block">
+            <img src="https://modernist.kaunas.lt/news-img/asociatyvios-nuotraukos-2-990x557.jpg" alt="" style="object-fit: cover;">
+            <a target="_blank" href="https://www.kaunas.lt/2026/07/27/unesco-palankiai-ivertino-kauno-pazanga-saugant-modernistini-pavelda-ir-didinant-jo-matomuma/"><span class="new-title">UNESCO palankiai įvertino Kauno pažangą saugant modernistinį paveldą ir didinant jo matomumą</span></a>
+            <span class="new-date">2026-07-27</span>
+            <hr>
+            <span class="new-desc">UNESCO Pasaulio paveldo komitetas teigiamai įvertino Kauno įgyvendinamas modernistinio paveldo apsaugos priemones ir pastangas supažindinti visuomenę su šiuo paveldu.
+            </span>
+        </div>
+        <div class="new-block">
+            <img src="https://modernist.kaunas.lt/news-img/unesco-zenklai-2-990x557.jpg" alt="" style="object-fit: cover;">
+            <a target="_blank" href="https://www.kaunas.lt/2026/07/17/kaune-iskile-zenklai-leis-lengviau-atpazinti-unesco-pasaulio-paveldo-teritorija/"><span class="new-title">Kaune iškilę ženklai leis lengviau atpažinti UNESCO pasaulio paveldo teritoriją</span></a>
+            <span class="new-date">2026-07-17</span>
+            <hr>
+            <span class="new-desc">Naujamiestyje ir Žaliakalnyje pastatyta 17 ženklų, padedančių gyventojams ir svečiams atpažinti Kauno UNESCO pasaulio paveldo vietovės ribas.
+            </span>
+        </div>
+        <div class="new-block">
             <img src="https://modernist.kaunas.lt/news-img/YjDbbw9eY7Y.png__2280x1520_q85_ALIAS-newshudge_crop-smart_subsampling-2_upscale.jpg" alt="" style="object-fit: cover;">
             <a target="_blank" href="https://kpd.lrv.lt/lt/naujienos/demesio-jau-laukiame-nekilnojamojo-kulturos-paveldo-pazinimo-sklaidos-ir-leidybos-projektu-paraisku-Rql/"><span class="new-title">Dėmesio! Jau laukiame Nekilnojamojo kultūros paveldo pažinimo sklaidos ir leidybos projektų paraiškų!</span></a>
             <span class="new-date">2026-04-14</span>

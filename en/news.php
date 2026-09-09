@@ -5,6 +5,16 @@
     <h2>News</h2>
     <div class="news-container container">
         <div class="new-block">
+            <img src="https://modernist.kaunas.lt/news-img/asociatyvios-nuotraukos-2-990x557.jpg" alt="" style="object-fit: cover;">
+            <a target="_blank" href="https://en.kaunas.lt/news/unesco-gives-a-positive-assessment-of-kaunas-progress-in-protecting-its-modernist-heritage-and-increasing-its-visibility"><span class="new-title">UNESCO Gives a Positive Assessment of Kaunas’ Progress in Protecting Its Modernist Heritage and Increasing Its Visibility</span></a>
+            <span class="new-date">2026-07-27</span>
+        </div>
+        <div class="new-block">
+            <img src="https://modernist.kaunas.lt/news-img/unesco-zenklai-2-990x557.jpg" alt="" style="object-fit: cover;">
+            <a target="_blank" href="https://en.kaunas.lt/be-kategorijos/new-signs-mark-the-entrances-to-the-kaunas-unesco-world-heritage-site"><span class="new-title">New signs mark the entrances to the Kaunas UNESCO World Heritage Site</span></a>
+            <span class="new-date">2026-07-17</span>
+        </div>
+        <div class="new-block">
             <img src="https://visit.kaunas.lt/assets/Uploads/_resampled/ResizedImageWzg2NSw2NTFd/ECTN-2nd-winner2.jpg" alt="">
             <a target="_blank" href="https://visit.kaunas.lt/en/kaunastic/kaunas-modernism-continues-to-shine-now-recognized-as-one-of-sustainable-tourism-leaders/"><span class="new-title">Kaunas' Modernism Continues to Shine: Now Recognized as One of Sustainable Tourism Leaders</span></a>
             <span class="new-date">2024-10-25</span>

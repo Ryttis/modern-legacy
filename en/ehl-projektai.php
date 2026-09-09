@@ -64,8 +64,6 @@
                 <span>The joint initiative “Re:Union” embodies the spirit of the European Heritage Label. It shows that our shared European heritage is not just about the past - it’s a foundation for the future. Through cooperation, Lublin and Kaunas remind us that places with deep traditions can also be leaders in innovation, multiculturalism, and tolerance.</span>
 
                 <span>As part of the "Re:Union" project, a diverse program of events will unfold throughout this year. Both cities will host a range of events: exhibitions, concerts, guided tours, and cultural experiences designed to bring their shared heritage to life and engage residents and visitors alike. All events are funded by the European Union via the European Heritage Label Bureau and are organized by the municipalities of Lublin and Kaunas.</span>
-
-                <span>The full program will be announced soon – stay tuned!</span>
             </div>
         </div>
     </div>
