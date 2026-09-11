@@ -5,7 +5,7 @@
     <h2>Naujienos</h2>
     <div class="news-container container">
         <div class="new-block">
-            <img src="https://modernist.kaunas.lt/news-img/simpoziumas.jpg" alt="" style="object-fit: cover;">
+            <img src="https://modernist.kaunas.lt/news-img/tarptautinis-skulpturos-simpoziumas-2026-13.jpg" alt="" style="object-fit: cover;">
             <a target="_blank" href="https://www.kaunas.lt/2026/09/02/stebekite-skulpturos-gimima-organizatoriai-kviecia-apsilankyti-tarptautinio-skulpturos-simpoziumo-aiksteleje/"><span class="new-title">Stebėkite skulptūros gimimą: organizatoriai kviečia apsilankyti Tarptautinio skulptūros simpoziumo aikštelėje</span></a>
             <span class="new-date">2026-09-02</span>
             <hr>
@@ -13,7 +13,7 @@
             </span>
         </div>
         <div class="new-block">
-            <img src="https://modernist.kaunas.lt/news-img/tarptautinis-skulpturos-simpoziumas-2026-13.jpg" alt="" style="object-fit: cover;">
+            <img src="https://modernist.kaunas.lt/news-img/simpoziumas.jpg" alt="" style="object-fit: cover;">
             <a target="_blank" href="https://www.kaunas.lt/2026/08/18/i-kauna-sugrizo-tarptautinis-skulpturos-simpoziumas-20-menininku-darbai-papuos-miesta/"><span class="new-title">Į Kauną sugrįžo Tarptautinis skulptūros simpoziumas: 20 menininkų darbai papuoš miestą</span></a>
             <span class="new-date">2026-08-18</span>
             <hr>
