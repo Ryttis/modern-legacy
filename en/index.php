@@ -67,7 +67,7 @@
             <span class="new-date">2026-07-17</span>
         </div>
         <div class="new-block">
-            <img src="https://visit.kaunas.lt/assets/Uploads/_resampled/ResizedImageWzg2NSw2NTFd/ECTN-2nd-winner2.jpg" alt="" style="object-fit: cover;">
+            <img src="https://modernist.kaunas.lt/news-img/20240920-JLA_0631-990x557.jpg" alt="" style="object-fit: cover;">
             <a target="_blank" href="https://visit.kaunas.lt/en/kaunastic/kaunas-modernism-continues-to-shine-now-recognized-as-one-of-sustainable-tourism-leaders/"><span class="new-title">Kaunas' Modernism Continues to Shine: Now Recognized as One of Sustainable Tourism Leaders</span></a>
             <span class="new-date">2024-10-25</span>
         </div>
